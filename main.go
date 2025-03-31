@@ -17,12 +17,8 @@ import (
 )
 
 func main() {
-	// .envファイルを読み込む
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-		return
-	}
+	// 環境変数のセットアップ
+	setEnviroment()
 
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -33,6 +29,24 @@ func main() {
 	habitRouter.GET("", AddRecordController)
 
 	router.Run("localhost:8080")
+}
+
+func setEnviroment() {
+	// HEROKU環境またはPRODUCTION環境かどうかを確認
+	_, isHeroku := os.LookupEnv("DYNO")
+	_, isProduction := os.LookupEnv("PRODUCTION")
+
+	// 本番環境（HerokuまたはPRODUCTION=trueの環境）
+	if isHeroku || isProduction {
+		fmt.Println("Running in production mode - using environment variables")
+	} else {
+		// 開発環境では.envファイルから読み込む
+		fmt.Println("Running in development mode - loading .env file")
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Println("Warning: Error loading .env file")
+		}
+	}
 }
 
 func AddRecordController(c *gin.Context) {
