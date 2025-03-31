@@ -28,7 +28,13 @@ func main() {
 	habitRouter.POST("", AddRecordController)
 	habitRouter.GET("", AddRecordController)
 
-	router.Run("localhost:8080")
+	// 本番環境かどうか
+	port := os.Getenv("PORT")
+	if port == "" {
+		router.Run("localhost:8080")
+	} else {
+		router.Run(":" + port)
+	}
 }
 
 func setEnviroment() {
