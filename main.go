@@ -22,6 +22,7 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default())
+	router.LoadHTMLGlob("templates/*")
 
 	// ルーティング設定
 	habitRouter := router.Group("/record")
@@ -61,7 +62,11 @@ func AddRecordController(c *gin.Context) {
 
 	// バリデーション
 	if category == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "カテゴリは必須です"})
+		c.HTML(http.StatusBadRequest, "errorMessage.html", gin.H{
+			"ErrorMessage": "カテゴリは必須です",
+			"ErrorCode":    http.StatusBadRequest,
+			"Date":         time.Now(),
+		})
 		return
 	}
 
@@ -74,12 +79,19 @@ func AddRecordController(c *gin.Context) {
 	// リポジトリ関数を呼び出して保存
 	err := AddRecordToNotion(&newRecord)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.HTML(http.StatusInternalServerError, "errorMessage.html", gin.H{
+			"ErrorMessage": err.Error(),
+			"ErrorCode":    http.StatusInternalServerError,
+			"Date":         newRecord.Date,
+		})
 		return
 	}
 
 	// 成功レスポンスを返す
-	c.JSON(http.StatusOK, newRecord)
+	c.HTML(http.StatusOK, "addRecordMessage.html", gin.H{
+		"Category": newRecord.Category,
+		"Date":     newRecord.Date,
+	})
 }
 
 func AddRecordToNotion(record *models.HabitRecord) error {
